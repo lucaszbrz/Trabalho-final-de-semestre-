@@ -320,17 +320,17 @@ def condicao_coletar_3_baus(jogador):
 
 def recompensa_moedas_50(jogador):
     jogador.ouro += 50
-    print("Você ganhou 50 moedas! ")
+   
 
 # ==== Instância de Quest e NPC ==== 
 def visitar_npc(jogador):
     global local_atual
     if local_atual==1:
-     npc_Velho.oferecer_quest(jogador)
+     npc_fase1.oferecer_quest(jogador)
     elif local_atual==2:
-     npc_Velho.oferecer_quest(jogador)
+     npc_fase2.oferecer_quest(jogador)
     elif local_atual==3:
-        npc_Velho.oferecer_quest(jogador)
+        npc_fase3.oferecer_quest(jogador)
 
 quest_baus = Quest(
     id='baus_1',
@@ -340,7 +340,7 @@ quest_baus = Quest(
     recompensa=recompensa_moedas_50
 )
 
-npc_Velho = NPC(
+npc_fase1 = NPC(
     nome='Samurai Aposentado',
     dialogo=[
         'Ah, jovem aventureiro…',
@@ -540,6 +540,7 @@ def explorar(jogador):
                         print("Você ganhou 50 moedas!")
                         jogador.ouro += 50
                         print(f"Você agora tem {jogador.ouro} moedas.")
+                        jogador.contador_de_baus -= 3
                         vendedor(jogador)
                         print("Você continuou andando até que......")
                     break
@@ -600,6 +601,7 @@ def explorar(jogador):
                     print("Você ganhou 50 moedas!")
                     jogador.ouro += 50
                     print(f"Você agora tem {jogador.ouro} moedas.")
+                    jogador.contador_de_baus -= 3
                     vendedor(jogador)
                     print("Você continuou andando até que......")
                   
@@ -649,6 +651,7 @@ def explorar(jogador):
                     print("Você ganhou 50 moedas!")
                     jogador.ouro += 50
                     print(f"Você agora tem {jogador.ouro} moedas.")
+                    jogador.contador_de_baus -= 3
                     vendedor(jogador)
                     print("Você continuou andando até que......")
                 elif escolha in ["não", "n", "nao"]:
@@ -663,6 +666,7 @@ def explorar(jogador):
             game_over()
 
     elif local_atual == 2:
+        evento = random.choice(["inimigo", "bau", "npc", "nada", "vendedor"])
         print("Você está no berço de Kharzuth. Aqui, os dragões são criados.")
         print("Você deve encontrar certa parte do código por aqui!!!")
         escolha = input("Quer explorar a região? (s/n): ").lower().strip()
@@ -671,29 +675,192 @@ def explorar(jogador):
             escolha = input("Quer explorar a região? (s/n): ").lower().strip()
         if escolha in ["s", "sim"]:
             while escolha == "s":
-                print("Você começou a explorar o berço de Kharzuth...")
+                print("Você começou a explorar berço de Kharzuth...\n")
                 time.sleep(1.5)
-                if random.randint(1, 5) == 1:
-                    print("Um baú misterioso apareceu!")
+                visitar_npc(jogador)
+                vendedor(jogador)
+                if random.random() >= 0.15:
+                    print("\nUm baú misterioso apareceu!")
                     item_encontrado = random.choice(list(itens_2.keys()))
                     inventario.append(item_encontrado)
-                    print(f"Você encontrou: {item_encontrado}")
+                    print(f"Você encontrou: {item_encontrado}\n")
                     jogador.contador_de_baus += 1
+                    if jogador.contador_de_baus < 3:
+                        
+                        #mandar ele pro Kharzuth direto até então
+                        
+                        explorar_quest = input("Você quer explorar para achar os restantes dos baús? (s/n): ").lower().strip()
+
+                        while explorar_quest not in ["s", "sim", "n", "nao", "não"]:
+                            print("Erro, informe novamente.")
+                            explorar_quest = input("Quer explorar a região atrás dos baús? (s/n): ").lower().strip()
+
+                        while explorar_quest in ["s", "sim"] and jogador.contador_de_baus < 3:
+                            print("Você começou a explorar o berço de Kharzuth...\n")
+                            time.sleep(1.5)
+
+                            if random.randint(1, 5) == 1:
+                                print("Você encontrou um baú misterioso!")
+                                item_encontrado = random.choice(list(itens_2.keys()))
+                                inventario.append(item_encontrado)
+                                print(f"Você encontrou: {item_encontrado}\n")
+                                jogador.contador_de_baus += 1
+
+                                faltam = 3 - jogador.contador_de_baus
+                                if faltam > 0:
+                                    print(f"Você encontrou um baú, faltando apenas {faltam} para completar a quest.")
+                                else:
+                                    print("Você encontrou todos os baús!")
+                                    break
+                            else:
+                                print("Nada por aqui... só vento e decepção.")
+
+                            explorar_quest = input("Quer continuar explorando? (s/n): ").lower().strip()
+                            while explorar_quest not in ["s", "sim", "n", "nao", "não"]:
+                                print("Erro, informe novamente.")
+                                explorar_quest = input("Quer continuar explorando? (s/n): ").lower().strip()
+                                
+
+                        if jogador.contador_de_baus < 3:
+                            print("Você decidiu não explorar mais o berço de Kharzuth. Boa sorte na sua jornada!")
+                            print("Você encontrou Kharzuth - Criador dos Dragões!")
+                            inimigo = Inimigo("Kharzuth - Criador dos Dragões", 20, 6, 3, "cura")
+                            batalha(jogador, inimigo)
+
+
+                    if jogador.contador_de_baus >= 3:
+                        jogador.checar_quests()
+                        print("Você ganhou 50 moedas!")
+                        jogador.ouro += 50
+                        print(f"Você agora tem {jogador.ouro} moedas.")
+                        jogador.contador_de_baus -= 3
+                        vendedor(jogador)
+                        print("Você continuou andando até que......")
                     break
                 else:
                     print("Nada por aqui... só vento e decepção.")
                 escolha = input("Quer continuar explorando? (s/n): ").lower().strip()
-            print("Você decidiu não explorar o berço de Kharzuth. Boa sorte na sua jornada!")
-            print("Você encontrou um Kharzuth - Criador dos Dragões!")
+            print("Você decidiu não explorar mais o berço de Kharzuth. Boa sorte na sua jornada!")
+            print("Você encontrou Kharzuth - Criador dos Dragões!")
             inimigo = Inimigo("Kharzuth - Criador dos Dragões", 20, 6, 3, "cura")
             batalha(jogador, inimigo)
         else:
             print("Você decidiu não explorar o berço de Kharzuth. Boa sorte na sua jornada!")
-            print("Você encontrou um Kharzuth - Criador dos Dragões!")
+            visitar_npc(jogador)
+            escolha = input("Quer explorar a região atrás dos baús (s/n): ").lower().strip()
+            
+            while escolha not in ["s", "sim", "não", "n", "nao"]:
+                print("Erro, informe novamente: ")
+                escolha = input("Quer explorar a região atrás dos baús? (s/n): ").lower().strip()
+            
+            if escolha in ["s", "sim"]:
+                print("Você começou a explorar a berço de Kharzuth...\n")
+                time.sleep(1.5)
+                print("Você encontrou um baú misterioso!")
+                item_encontrado = random.choice(list(itens_2.keys()))
+                inventario.append(item_encontrado)
+                print(f"Você encontrou: {item_encontrado}\n")
+                jogador.contador_de_baus += 1
+                print("Você encontrou um baú, faltando apenas 2 para completar a quest")
+                
+                if jogador.contador_de_baus < 3:
+                        
+                        #mandar ele pro dragao direto até então
+                        
+                        explorar_quest = input("Você quer explorar para achar os restantes dos baús? (s/n): ").lower().strip()
+                        
+                        while explorar_quest not in ["s", "sim", "não", "n", "nao"]:
+                            print("Erro, informe novamente: ")
+                            explorar_quest = input("Quer explorar a região atrás dos baús? (s/n): ").lower().strip()
+                        
+                        while explorar_quest in ["s", "sim"] and jogador.contador_de_baus < 3:
+                            print("Você começou a explorar a berço de Kharzuth...\n")
+                            time.sleep(1.5)
+                            print("Você encontrou um baú misterioso!")
+                            item_encontrado = random.choice(list(itens_2.keys()))
+                            inventario.append(item_encontrado)
+                            print(f"Você encontrou: {item_encontrado}\n")
+                            jogador.contador_de_baus += 1
+                            faltam = 3 - jogador.contador_de_baus
+                            if faltam > 0:
+                                print(f"Você encontrou um baú, faltando apenas {faltam} para completar a quest")
+                                explorar_quest = input("Você quer explorar para achar os restantes dos baús? (s/n): ").lower().strip()
+                            else:
+                                break
+                        
+                            
+                if jogador.contador_de_baus >= 3:
+                        jogador.checar_quests()
+                        print("Você ganhou 50 moedas!")
+                        jogador.ouro += 50
+                        print(f"Você agora tem {jogador.ouro} moedas.")
+                        jogador.contador_de_baus -= 3
+                        vendedor(jogador)
+                        print("Você continuou andando até que......")
+                    
+                  
+
+
+            elif escolha in ["não", "n", "nao"]:
+                print("Você tem que fazer a quest para prosseguir em sua jornada")
+                escolha = input("Quer explorar a região atrás dos baús (s/n): ").lower().strip()
+                while escolha not in ["s", "sim", "não", "n", "nao"]:
+                    print("Erro, informe novamente: ")
+                    escolha = input("Quer explorar a região atrás dos baús? (s/n): ").lower().strip()
+                if escolha in ["s", "sim"]:
+                    print("Você começou a explorar berço de Kharzuth...\n")
+                    time.sleep(1.5)
+                    print("Você encontrou um baú misterioso!")
+                    item_encontrado = random.choice(list(itens_2.keys()))
+                    inventario.append(item_encontrado)
+                    print(f"Você encontrou: {item_encontrado}\n")
+                    jogador.contador_de_baus += 1
+                    print("Você encontrou um baú, faltando apenas 2 para completar a quest")
+                    if jogador.contador_de_baus < 3:
+                        
+                        #mandar ele pro dragao direto até então
+                        
+                        explorar_quest = input("Você quer explorar para achar os restantes dos baús? (s/n): ").lower().strip()
+                        while explorar_quest not in ["s", "sim", "não", "n", "nao"]:
+                            print("Erro, informe novamente: ")
+                            explorar_quest = input("Quer explorar a região atrás dos baús? (s/n): ").lower().strip()
+                        while explorar_quest in ["s", "sim"] and jogador.contador_de_baus < 3:
+                            print("Você começou a explorar o berço de Kharzuth...\n")
+                            time.sleep(1.5)
+                            print("Você encontrou um baú misterioso!")
+                            item_encontrado = random.choice(list(itens_2.keys()))
+                            inventario.append(item_encontrado)
+                            print(f"Você encontrou: {item_encontrado}\n")
+                            jogador.contador_de_baus += 1
+                            faltam = 3 - jogador.contador_de_baus
+                            if faltam > 0:
+                                print(f"Você encontrou um baú, faltando apenas {faltam} para completar a quest")
+                                explorar_quest = input("Você quer explorar para achar os restantes dos baús? (s/n): ").lower().strip()
+                            else:
+                                break
+                        
+                            
+                if jogador.contador_de_baus >= 3:
+                        jogador.checar_quests()
+                        print("Você ganhou 50 moedas!")
+                        jogador.ouro += 50
+                        print(f"Você agora tem {jogador.ouro} moedas.")
+                        jogador.contador_de_baus -= 3
+                        vendedor(jogador)
+                        print("Você continuou andando até que......")
+                elif escolha in ["não", "n", "nao"]:
+                    print("Você decidiu não explorar mais o berço de Kharzuth. Boa sorte na sua jornada!")
+                    print("Você encontrou Kharzuth - Criador dos Dragões!")
+                    inimigo = Inimigo("Kharzuth - Criador dos Dragões", 100, 100, 100, "furia")
+                    batalha(jogador, inimigo)
+                    game_over()
+            print("Você encontrou Kharzuth - Criador dos Dragões!")
             inimigo = Inimigo("Kharzuth - Criador dos Dragões", 20, 6, 3, "cura")
             batalha(jogador, inimigo)
+            game_over()
+    
 
-    elif local_atual == 3:
+    elif local_atual == 3: 
         print("Você está no castelo de Drenvaar. Aqui, o Senhor do Tempo reside.")
         print("Você deve encontrar certa parte do código por aqui!!!")
         escolha = input("Quer explorar a região? (s/n): ").lower().strip()
@@ -704,15 +871,51 @@ def explorar(jogador):
             while escolha == "s":
                 print("Você começou a explorar o castelo de Drenvaar...")
                 time.sleep(1.5)
-                if random.randint(1, 5) == 1:
-                    print("Um baú misterioso apareceu!")
+                visitar_npc(jogador)
+                vendedor(jogador)
+                if random.random() >= 0.15:
+                    print("\nUm baú misterioso apareceu!")
                     item_encontrado = random.choice(list(itens_3.keys()))
                     inventario.append(item_encontrado)
-                    print(f"Você encontrou: {item_encontrado}")
+                    print(f"Você encontrou: {item_encontrado}\n")
                     jogador.contador_de_baus += 1
-                    break
-                else:
-                    print("Nada por aqui... só vento e decepção.")
+                    if jogador.contador_de_baus < 3:
+                        
+                        #mandar ele pro dragao direto até então
+                        
+                        explorar_quest = input("Você quer explorar para achar os restantes dos baús? (s/n): ").lower().strip()
+                        while explorar_quest not in ["s", "sim", "não", "n", "nao"]:
+                            print("Erro, informe novamente: ")
+                            explorar_quest = input("Quer explorar a região atrás dos baús? (s/n): ").lower().strip()
+                        while explorar_quest in ["s", "sim"] and jogador.contador_de_baus <3:
+                            print("Você começou a explorar a lagoa dos dragões...\n")
+                            time.sleep(1.5)
+                            print("Você encontrou um baú misterioso!")
+                            item_encontrado = random.choice(list(itens_3.keys()))
+                            inventario.append(item_encontrado)
+                            print(f"Você encontrou: {item_encontrado}\n")
+                            jogador.contador_de_baus += 1
+                            faltam = 3 - jogador.contador_de_baus
+                            if faltam > 0:
+                                print(f"Você encontrou um baú, faltando apenas {faltam} para completar a quest")
+                                explorar_quest = input("Você quer explorar para achar os restantes dos baús? (s/n): ").lower().strip()
+                            else:
+                                break
+                    if jogador.contador_de_baus >= 3:
+                        jogador.checar_quests()
+                        print("Você ganhou 50 moedas!")
+                        jogador.ouro += 50
+                        print(f"Você agora tem {jogador.ouro} moedas.")
+                        vendedor(jogador)
+                        print("Você continuou andando até que......") 
+                        escolha="s"
+                    elif escolha in ["não", "n", "nao"]:
+                        print("Você decidiu não explorar mais o Castelo de Drenvaar. Boa sorte na sua jornada!")
+                        print("Você encontrou o Drenvaar - Senhor do Tempo!")
+                        inimigo = Inimigo("Drenvaar - Senhor do Tempo", 100, 100, 100, "furia")
+                        batalha(jogador, inimigo)
+                        game_over()       
+                
                 escolha = input("Quer continuar explorando? (s/n): ").lower().strip()
             print("Você decidiu não explorar mais o castelo de Drenvaar. Boa sorte na sua jornada!")
             print("Você encontrou Drenvaar - Senhor do Tempo!")
@@ -720,6 +923,59 @@ def explorar(jogador):
             batalha(jogador, inimigo)
         else:
             print("Você decidiu não explorar o castelo de Drenvaar. Boa sorte na sua jornada!")
+            visitar_npc(jogador)
+            escolha = input("Quer explorar a região atrás dos baús (s/n): ").lower().strip()
+            while escolha not in ["s", "sim", "não", "n", "nao"]:
+                print("Erro, informe novamente: ")
+                escolha = input("Quer explorar a região atrás dos baús? (s/n): ").lower().strip()
+            if escolha in ["s", "sim"]:
+                print("Você começou a explorar a lagoa dos dragões...\n")
+                time.sleep(1.5)
+                print("Você encontrou um baú misterioso!")
+                item_encontrado = random.choice(list(itens_3.keys()))
+                inventario.append(item_encontrado)
+                print(f"Você encontrou: {item_encontrado}\n")
+                jogador.contador_de_baus += 1
+                print("Você encontrou um baú, faltando apenas 2 para completar a quest")
+            if jogador.contador_de_baus >= 3:
+                        
+                        #mandar ele pro BOSS direto até então
+                        
+                        explorar_quest = input("Você quer explorar para achar os restantes dos baús? (s/n): ").lower().strip()
+                        
+                        while explorar_quest not in ["s", "sim", "não", "n", "nao"]:
+                            print("Erro, informe novamente: ")
+                            explorar_quest = input("Quer explorar a região atrás dos baús? (s/n): ").lower().strip()
+                        
+                        while explorar_quest in ["s", "sim"] and jogador.contador_de_baus <3:
+                            print("Você começou a explorar o Castelo de Drenvaar...\n")
+                            time.sleep(1.5)
+                            print("Você encontrou um baú misterioso!")
+                            item_encontrado = random.choice(list(itens_3.keys()))
+                            inventario.append(item_encontrado)
+                            print(f"Você encontrou: {item_encontrado}\n")
+                            jogador.contador_de_baus += 1
+                            faltam = 3 - jogador.contador_de_baus
+                            if faltam > 0:
+                                print(f"Você encontrou um baú, faltando apenas {faltam} para completar a quest")
+                                explorar_quest = input("Você quer explorar para achar os restantes dos baús? (s/n): ").lower().strip()
+                            else:
+                                break
+                        if jogador.contador_de_baus >= 3:
+                            jogador.checar_quests()
+                            print("Você ganhou 50 moedas!")
+                            jogador.ouro += 50
+                            print(f"Você agora tem {jogador.ouro} moedas.")
+                            vendedor(jogador)
+                            print("Você continuou andando até que......")
+                            escolha="s"
+            elif escolha in ["não", "n", "nao"]:
+             print("Você decidiu não explorar mais a lagoa dos dragões. Boa sorte na sua jornada!")
+             print("Você encontrou um Dragão Ancião!")
+             inimigo = Inimigo("Drenvaar - O Senhor do Tempo", 100, 100, 100, "furia")
+             batalha(jogador, inimigo)
+             game_over()               
+            
             print("Você encontrou Drenvaar - Senhor do Tempo!")
             inimigo = Inimigo("Drenvaar - Senhor do Tempo", 25, 7, 4, "veneno")
             batalha(jogador, inimigo)
